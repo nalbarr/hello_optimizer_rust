@@ -63,15 +63,15 @@ where
     }
 
     // initialize to first guess
+    let mut n_epochs = 0;
     let mut x_last = X_INIT;
     let mut y_last = f(X_INIT);
     let mut step_dir = 1.0;
-    let mut result: (i32, f64, f64) = (-1, 0.0, 0.0);
+
+    let mut x_new = step_dir * x_step(x_last);
+    let mut y_new = f(x_new);
 
     for epoch in 1..N_EPOCHS {
-        // compute y_new after x_new step
-        let x_new = step_dir * x_step(x_last);
-        let y_new = f(x_new);
         dump_epoch(y_last, y_new, x_new);
 
         if y_new < y_last {
@@ -81,10 +81,14 @@ where
         } else if y_new > y_last {
             step_dir = -1.0;
         } else if y_min_reached(epoch, y_last, y_new, x_new) {
-            result = (epoch, x_new, y_new);
+            return (n_epochs, x_new, y_new);
         }
+        // compute y_new after x_new step
+        n_epochs = n_epochs + 1;
+        x_new = step_dir * x_step(x_last);
+        y_new = f(x_new);
     }
-    result
+    return (n_epochs, x_new, y_new);
 }
 
 /*
@@ -99,17 +103,21 @@ fn gradient(x: f64) -> f64 {
 }
 
 fn main() {
-    println!("x_init: {}", X_INIT);
-    println!("n_epochs: {}", N_EPOCHS);
-    println!("alpha: {}", ALPHA);
-    println!("y_min_threshold: {}", Y_MIN_THRESHOLD);
+    println!("X_INIT: {}", X_INIT);
+    println!("N_EPOCHS: {}", N_EPOCHS);
+    println!("ALPHA: {}", ALPHA);
+    println!("Y_MIN_THRESHOLD: {}", Y_MIN_THRESHOLD);
 
     println!("f(): {}", f(X_INIT));
-    let (epochs_actual, x_new, y_min) = find_min(f);
+    let result: (i32, f64, f64) = find_min(f);
+
+    let epochs_actual: i32 = result.0;
+    let x_new: f64 = result.1;
+    let y_min: f64 = result.2;
 
     println!("After: {} epochs", epochs_actual);
-    println!("    x_init:  {}", X_INIT);
-    println!("    y_init:  {}", f(X_INIT));
-    println!("    x_new:   {}", x_new);
-    println!("    y_min:   {}", y_min);
+    println!("    x_init:  {:.2}", X_INIT);
+    println!("    y_init:  {:.2}", f(X_INIT));
+    println!("    x_new:   {:.9}", x_new);
+    println!("    y_min:   {:.9}", y_min);
 }
